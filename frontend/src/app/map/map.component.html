@@ -1,0 +1,26 @@
+<div class="container">
+  <div id="map"></div>
+
+  <div class="sidebar" [class.open]="selectedCountry">
+    <div class="sidebar-header">
+      <h2>{{ selectedCountry }} — Diplomatic Events</h2>
+      <button (click)="selectedCountry = null">✕</button>
+    </div>
+
+    <div class="loading" *ngIf="loadingEvents">Loading events...</div>
+
+    <div class="events-list" *ngIf="!loadingEvents">
+      <div class="event-card" *ngFor="let e of events">
+        <span class="badge" [class]="getSentimentClass(e.sentiment)">
+          {{ e.sentiment }}
+        </span>
+        <p class="headline">{{ e.headline }}</p>
+        <span class="date">{{ e.event_date | date: "mediumDate" }}</span>
+        <a [href]="e.source_url" target="_blank">Read article →</a>
+      </div>
+      <div class="no-events" *ngIf="events.length === 0">
+        No events found for this country.
+      </div>
+    </div>
+  </div>
+</div>

@@ -9,26 +9,28 @@ import { HttpClient } from "@angular/common/http";
 })
 export class MapComponent implements OnInit {
   private map!: L.Map;
-  private geojsonLayer!: L.GeoJSON;
-  private activeCountries: Set<string> = new Set();
-  selectedCountry: string | null = null;
-  public events: any[] = [];
-  public loadingEvents = false;
+  private markers: L.CircleMarker[] = [];
+
+  allEvents: any[] = [];
+  filteredEvents: any[] = [];
+  selectedEvent: any = null;
+  searchQuery = "";
+  loading = true;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.initMap();
-    this.loadActiveCountries();
+    this.loadEvents();
   }
 
   private initMap(): void {
     this.map = L.map("map", {
-      center: [20, 0],
-      zoom: 2,
+      center: [20, 78],
+      zoom: 3,
       minZoom: 2,
-      maxZoom: 6,
-      zoomControl: true,
+      maxZoom: 8,
+      zoomControl: false,
     });
 
     L.tileLayer(
@@ -39,73 +41,94 @@ export class MapComponent implements OnInit {
       },
     ).addTo(this.map);
 
-    // Labels on top
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-      {
-        attribution: "",
-        subdomains: "abcd",
-      },
-    ).addTo(this.map);
+    L.control.zoom({ position: "bottomright" }).addTo(this.map);
   }
 
-  private loadActiveCountries(): void {
+  private loadEvents(): void {
     this.http
-      .get<any[]>("http://localhost:8000/api/summary/")
+      .get<any>("http://localhost:8000/api/events/?days=30")
       .subscribe((data) => {
-        data.forEach((d) => this.activeCountries.add(d.country_iso));
-        this.loadGeoJSON();
+        this.allEvents = data.results;
+        this.filteredEvents = data.results;
+        this.loading = false;
+        this.plotMarkers(data.results);
       });
   }
 
-  private loadGeoJSON(): void {
-    this.http.get("/assets/countries.geojson").subscribe((geojson: any) => {
-      this.geojsonLayer = L.geoJSON(geojson, {
-        style: (feature) => this.styleFeature(feature),
-        onEachFeature: (feature, layer) => {
-          const iso = feature.properties.ISO_A3;
-          if (this.activeCountries.has(iso)) {
-            layer.on("click", () => this.onCountryClick(iso));
-            layer.on("mouseover", (e) => {
-              (e.target as L.Path).setStyle({ fillOpacity: 0.9 });
-            });
-            layer.on("mouseout", (e) => {
-              this.geojsonLayer.resetStyle(e.target);
-            });
-          }
-        },
+  private plotMarkers(events: any[]): void {
+    // Clear existing markers
+    this.markers.forEach((m) => m.remove());
+    this.markers = [];
+
+    events.forEach((ev) => {
+      if (!ev.latitude || !ev.longitude) return;
+
+      const color = this.getSentimentColor(ev.sentiment);
+
+      const marker = L.circleMarker([ev.latitude, ev.longitude], {
+        radius: 6,
+        fillColor: color,
+        fillOpacity: 0.85,
+        color: "#ffffff",
+        weight: 1,
       }).addTo(this.map);
+
+      marker.on("click", () => this.selectEvent(ev));
+      this.markers.push(marker);
     });
   }
 
-  private styleFeature(feature: any): L.PathOptions {
-    const iso = feature?.properties?.ISO_A3;
-    const isActive = this.activeCountries.has(iso);
-
-    return {
-      fillColor: isActive ? "#f97316" : "#1e293b",
-      fillOpacity: isActive ? 0.7 : 0.3,
-      color: "#334155",
-      weight: 0.5,
-    };
+  selectEvent(ev: any): void {
+    this.selectedEvent = ev;
+    if (ev.latitude && ev.longitude) {
+      this.map.panTo([ev.latitude, ev.longitude], { animate: true });
+    }
+    // Scroll feed to this event
+    setTimeout(() => {
+      const el = document.getElementById(`event-${ev.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   }
 
-  onCountryClick(iso: string): void {
-    this.selectedCountry = iso;
-    this.loadingEvents = true;
-    this.events = [];
-
-    this.http
-      .get<any>(`http://localhost:8000/api/events/?country=${iso}&days=30`)
-      .subscribe((data) => {
-        this.events = data.results;
-        this.loadingEvents = false;
-      });
+  onSearch(): void {
+    const q = this.searchQuery.toLowerCase().trim();
+    if (!q) {
+      this.filteredEvents = this.allEvents;
+    } else {
+      this.filteredEvents = this.allEvents.filter(
+        (ev) =>
+          ev.country_iso.toLowerCase().includes(q) ||
+          ev.headline.toLowerCase().includes(q) ||
+          ev.event_type.toLowerCase().includes(q),
+      );
+    }
+    this.plotMarkers(this.filteredEvents);
   }
 
-  getSentimentClass(sentiment: string): string {
-    if (sentiment === "positive") return "positive";
-    if (sentiment === "negative") return "negative";
-    return "neutral";
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.filteredEvents = this.allEvents;
+    this.plotMarkers(this.allEvents);
+  }
+
+  getSentimentColor(sentiment: string): string {
+    if (sentiment === "positive") return "#22c55e";
+    if (sentiment === "negative") return "#ef4444";
+    return "#94a3b8";
+  }
+
+  getSentimentLabel(sentiment: string): string {
+    if (sentiment === "positive") return "POS";
+    if (sentiment === "negative") return "NEG";
+    return "NEU";
+  }
+
+  formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   }
 }

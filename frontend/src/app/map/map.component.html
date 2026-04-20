@@ -1,26 +1,98 @@
-<div class="container">
-  <div id="map"></div>
+<div class="layout">
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <!-- Header -->
+    <div class="sidebar-top">
+      <div class="brand">
+        <span class="brand-flag">🇮🇳</span>
+        <div>
+          <!--<div class="brand-title"></div> to be added here-->
+          <div class="brand-sub">India Bilateral Monitor</div>
+        </div>
+      </div>
 
-  <div class="sidebar" [class.open]="selectedCountry">
-    <div class="sidebar-header">
-      <h2>{{ selectedCountry }} — Diplomatic Events</h2>
-      <button (click)="selectedCountry = null">✕</button>
+      <!-- Search -->
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input
+          type="text"
+          placeholder="Search country, event type..."
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+        />
+        <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()">
+          ✕
+        </button>
+      </div>
+
+      <div class="event-count">
+        {{ filteredEvents.length }} EVENTS
+        <span *ngIf="searchQuery"> — filtered</span>
+      </div>
     </div>
 
-    <div class="loading" *ngIf="loadingEvents">Loading events...</div>
+    <!-- Feed -->
+    <div class="feed">
+      <div class="loading-state" *ngIf="loading">
+        <div class="pulse"></div>
+        Loading events...
+      </div>
 
-    <div class="events-list" *ngIf="!loadingEvents">
-      <div class="event-card" *ngFor="let e of events">
-        <span class="badge" [class]="getSentimentClass(e.sentiment)">
-          {{ e.sentiment }}
-        </span>
-        <p class="headline">{{ e.headline }}</p>
-        <span class="date">{{ e.event_date | date: "mediumDate" }}</span>
-        <a [href]="e.source_url" target="_blank">Read article →</a>
+      <div
+        class="event-item"
+        *ngFor="let ev of filteredEvents"
+        [id]="'event-' + ev.id"
+        [class.active]="selectedEvent?.id === ev.id"
+        (click)="selectEvent(ev)"
+      >
+        <div class="event-meta">
+          <span
+            class="sentiment-dot"
+            [style.background]="getSentimentColor(ev.sentiment)"
+          ></span>
+          <span class="event-type">{{ ev.event_type | uppercase }}</span>
+          <span class="country-iso">{{ ev.country_iso }}</span>
+          <span class="event-date">{{ formatDate(ev.event_date) }}</span>
+        </div>
+        <div class="event-headline">{{ ev.headline }}</div>
+        <a
+          class="event-link"
+          [href]="ev.source_url"
+          target="_blank"
+          (click)="$event.stopPropagation()"
+        >
+          Read source →
+        </a>
       </div>
-      <div class="no-events" *ngIf="events.length === 0">
-        No events found for this country.
+
+      <div class="no-results" *ngIf="!loading && filteredEvents.length === 0">
+        No events found for "{{ searchQuery }}"
       </div>
+    </div>
+  </aside>
+
+  <!-- MAP -->
+  <div class="map-wrapper">
+    <div id="map"></div>
+
+    <!-- Selected event popup -->
+    <div class="event-popup" *ngIf="selectedEvent">
+      <div class="popup-header">
+        <span
+          class="sentiment-dot"
+          [style.background]="getSentimentColor(selectedEvent.sentiment)"
+        ></span>
+        <span class="popup-type">{{
+          selectedEvent.event_type | uppercase
+        }}</span>
+        <span class="popup-country">{{ selectedEvent.country_iso }}</span>
+        <button class="popup-close" (click)="selectedEvent = null">✕</button>
+      </div>
+      <div class="popup-headline">{{ selectedEvent.headline }}</div>
+      <div class="popup-date">{{ formatDate(selectedEvent.event_date) }}</div>
+      <a [href]="selectedEvent.source_url" target="_blank" class="popup-link"
+        >Read full article →</a
+      >
     </div>
   </div>
 </div>

@@ -13,20 +13,25 @@ class EventListView(generics.ListAPIView):
     serializer_class = DiplomaticEventSerializer
 
     def get_queryset(self):
-        qs = DiplomaticEvent.objects.all()
+        qs = DiplomaticEvent.objects.filter(
+            num_articles__gte=2,  # at least 2 sources
+        ).exclude(
+            country_iso__in=[  # exclude known bad codes
+                "IND",
+                "INS",
+                "UNK",
+            ]
+        )
 
-        # Filter by country
         country = self.request.query_params.get("country")
         if country:
             qs = qs.filter(country_iso__iexact=country)
 
-        # Filter by last N days
         days = self.request.query_params.get("days")
         if days:
             since = timezone.now() - timedelta(days=int(days))
             qs = qs.filter(event_date__gte=since)
 
-        # Filter by sentiment
         sentiment = self.request.query_params.get("sentiment")
         if sentiment:
             qs = qs.filter(sentiment=sentiment)

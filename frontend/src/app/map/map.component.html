@@ -1,17 +1,15 @@
 <div class="layout">
-  <!-- LEFT SIDEBAR -->
+
   <aside class="sidebar">
-    <!-- Header -->
     <div class="sidebar-top">
       <div class="brand">
         <span class="brand-flag">🇮🇳</span>
         <div>
-          <!--<div class="brand-title"></div> to be added here-->
+          <div class="brand-title">DIPLO PULSE</div>
           <div class="brand-sub">India Bilateral Monitor</div>
         </div>
       </div>
 
-      <!-- Search -->
       <div class="search-box">
         <span class="search-icon">⌕</span>
         <input
@@ -20,18 +18,12 @@
           [(ngModel)]="searchQuery"
           (input)="onSearch()"
         />
-        <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()">
-          ✕
-        </button>
+        <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()">✕</button>
       </div>
 
-      <div class="event-count">
-        {{ filteredEvents.length }} EVENTS
-        <span *ngIf="searchQuery"> — filtered</span>
-      </div>
+      <div class="event-count">{{ filteredEvents.length }} EVENTS</div>
     </div>
 
-    <!-- Feed -->
     <div class="feed">
       <div class="loading-state" *ngIf="loading">
         <div class="pulse"></div>
@@ -46,21 +38,20 @@
         (click)="selectEvent(ev)"
       >
         <div class="event-meta">
-          <span
-            class="sentiment-dot"
-            [style.background]="getSentimentColor(ev.sentiment)"
-          ></span>
-          <span class="event-type">{{ ev.event_type | uppercase }}</span>
+          <span class="sentiment-dot" [style.background]="getSentimentColor(ev.sentiment)"></span>
+          <span class="event-type">{{ ev.event_type }}</span>
           <span class="country-iso">{{ ev.country_iso }}</span>
           <span class="event-date">{{ formatDate(ev.event_date) }}</span>
         </div>
+
         <div class="event-headline">{{ ev.headline }}</div>
-        <a
-          class="event-link"
-          [href]="ev.source_url"
-          target="_blank"
-          (click)="$event.stopPropagation()"
-        >
+
+        <div class="event-location" *ngIf="ev.latitude && ev.longitude">
+          <span class="pin-icon">📍</span>
+          <span class="location-text">{{ ev.latitude | number:'1.1-2' }}° {{ ev.longitude | number:'1.1-2' }}°</span>
+        </div>
+
+        <a class="event-link" [href]="ev.source_url" target="_blank" (click)="$event.stopPropagation()">
           Read source →
         </a>
       </div>
@@ -71,28 +62,24 @@
     </div>
   </aside>
 
-  <!-- MAP -->
   <div class="map-wrapper">
     <div id="map"></div>
 
-    <!-- Selected event popup -->
     <div class="event-popup" *ngIf="selectedEvent">
       <div class="popup-header">
-        <span
-          class="sentiment-dot"
-          [style.background]="getSentimentColor(selectedEvent.sentiment)"
-        ></span>
-        <span class="popup-type">{{
-          selectedEvent.event_type | uppercase
-        }}</span>
+        <span class="sentiment-dot" [style.background]="getSentimentColor(selectedEvent.sentiment)"></span>
+        <span class="popup-type">{{ selectedEvent.event_type }}</span>
         <span class="popup-country">{{ selectedEvent.country_iso }}</span>
         <button class="popup-close" (click)="selectedEvent = null">✕</button>
       </div>
       <div class="popup-headline">{{ selectedEvent.headline }}</div>
+      <div class="popup-location" *ngIf="selectedEvent.latitude">
+        <span class="pin-icon">📍</span>
+        <span class="location-text">{{ selectedEvent.latitude | number:'1.1-2' }}° {{ selectedEvent.longitude | number:'1.1-2' }}°</span>
+      </div>
       <div class="popup-date">{{ formatDate(selectedEvent.event_date) }}</div>
-      <a [href]="selectedEvent.source_url" target="_blank" class="popup-link"
-        >Read full article →</a
-      >
+      <a [href]="selectedEvent.source_url" target="_blank" class="popup-link">Read full article →</a>
     </div>
   </div>
+
 </div>

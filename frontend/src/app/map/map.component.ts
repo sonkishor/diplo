@@ -31,6 +31,11 @@ export class MapComponent implements OnInit {
       minZoom: 2,
       maxZoom: 8,
       zoomControl: false,
+      maxBounds: [
+        [-90, -180],
+        [90, 180],
+      ], // hard world limits
+      maxBoundsViscosity: 1.0, // 1.0 = hard stop, 0.5 = elastic
     });
 
     L.tileLayer(

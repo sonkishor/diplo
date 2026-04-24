@@ -40,7 +40,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "frontend/dist/frontend/browser"],
+        "DIRS": [BASE_DIR / "frontend/dist/frontend"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -85,9 +85,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-STATICFILES_DIRS = [BASE_DIR / "frontend/dist/frontend/browser"]
+STATICFILES_DIRS = [BASE_DIR / "frontend/dist/frontend"]  # ← remove /browser
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

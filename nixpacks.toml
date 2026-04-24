@@ -11,6 +11,5 @@ cmds = [
 cmds = [
     ". /opt/venv/bin/activate && pip install -r requirements.txt",
     "cd frontend && npm install && npx ng build --configuration production && cd ..",
-    "find /app/frontend/dist -name 'index.html'",
     ". /opt/venv/bin/activate && python3 manage.py collectstatic --noinput"
 ]

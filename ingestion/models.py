@@ -32,6 +32,7 @@ class DiplomaticEvent(models.Model):
     source_url = models.URLField(max_length=800, unique=True)
     source = models.CharField(max_length=50, default="GDELT")
     created_at = models.DateTimeField(auto_now_add=True)
+    location_name = models.CharField(max_length=200, blank=True, default="")
 
     class Meta:
         ordering = ["-event_date"]

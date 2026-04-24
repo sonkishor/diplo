@@ -1,9 +1,12 @@
-[build]
-builder = "NIXPACKS"
+[[services]]
+name = "web"
 
-[deploy]
+[services.deploy]
 startCommand = "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+
 [[services]]
 name = "gdelt-scraper"
-cronSchedule = "*/15 * * * *"
+
+[services.deploy]
 startCommand = "python manage.py pull_gdelt"
+cronSchedule = "*/15 * * * *"

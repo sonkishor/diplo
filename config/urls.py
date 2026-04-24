@@ -26,11 +26,3 @@ urlpatterns = [
         r"^(?!api/)(?!admin/).*$", TemplateView.as_view(template_name="index.html")
     ),
 ]
-
-TEMPLATES = [
-    {
-        "DIRS": [BASE_DIR / "frontend/dist/frontend"],  # Angular build output
-    }
-]
-
-STATICFILES_DIRS = [BASE_DIR / "frontend/dist/frontend"]

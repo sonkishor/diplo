@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.build]
+cmds = [
+    "pip install -r requirements.txt",
+    "cd frontend && npm install && npx ng build --configuration production && cd ..",
+    "python manage.py collectstatic --noinput"
+]

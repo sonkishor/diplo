@@ -50,14 +50,14 @@ export class MapComponent implements OnInit {
   }
 
   private loadEvents(): void {
-    this.http
-      .get<any>("http://localhost:8000/api/events/?days=30")
-      .subscribe((data) => {
-        this.allEvents = data.results;
-        this.filteredEvents = data.results;
-        this.loading = false;
-        this.plotMarkers(data.results);
-      });
+    const baseUrl = window.location.origin;
+
+    this.http.get<any>(`${baseUrl}/api/events/?days=30`).subscribe((data) => {
+      this.allEvents = data.results;
+      this.filteredEvents = data.results;
+      this.loading = false;
+      this.plotMarkers(data.results);
+    });
   }
 
   private plotMarkers(events: any[]): void {
